@@ -17,7 +17,7 @@ namespace SimpleSearch.Tests
             using (var textReader = new StreamReader(file))
             {
                 var csv = new CsvReader(textReader);
-                Airports = csv.GetRecords<Airport>().ToList();
+                Airports = csv.GetRecords<Airport>().Where(a=> !string.IsNullOrEmpty(a.iata_code) && a.iata_code.Length > 2).ToList();
             }
 
             SearchIndex = SearchIndexer.Build(Airports,
@@ -33,7 +33,20 @@ namespace SimpleSearch.Tests
         public SearchIndex<Airport> SearchIndex;
 
         [TestMethod]
-        public void Can_find_malta()
+        public void Can_find_heathrow_by_code()
+        {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            var results = SearchIndex.Search("LHR").ToList();
+
+            stopWatch.Stop();
+
+            Assert.AreEqual(results.Count, 1);
+        }
+
+        [TestMethod]
+        public void Can_find_malta_by_name()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -41,6 +54,8 @@ namespace SimpleSearch.Tests
             var results = SearchIndex.Search("Malta").ToList();
 
             stopWatch.Stop();
+
+            Assert.AreEqual(results.Count, 2);
         }
     }
 }

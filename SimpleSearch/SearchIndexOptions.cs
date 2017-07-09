@@ -7,10 +7,10 @@ namespace SimpleSearch
 {
     public class SearchIndexOptions<TType>
     {
-        internal Dictionary<string, Tuple<double, Func<TType, string>>> Properties { get; set; } 
-                    = new Dictionary<string, Tuple<double, Func<TType, string>>>();
+        internal Dictionary<string, SearchIndexOption> Properties { get; set; } 
+                    = new Dictionary<string, SearchIndexOption>();
 
-        public SearchIndexOptions<TType> AddProperty(Expression<Func<TType, string>> propertyLambda, double rank = 0.8d, bool requiresFullMatch = false)
+        public SearchIndexOptions<TType> AddProperty(Expression<Func<TType, string>> propertyLambda, double rank = 0.8d, bool requiresFullWordMatch = false)
         {
             Type type = typeof(TType);
 
@@ -23,10 +23,22 @@ namespace SimpleSearch
                 throw new ArgumentException($"Expression '{propertyLambda.ToString()}' refers to a field, not a property.");
 
 
-            Properties.Add(propInfo.ToString(), new Tuple<double, Func<TType, string>>(rank, propertyLambda.Compile()));
+            Properties.Add(propInfo.ToString(), new SearchIndexOption
+            {
+                Score = rank,
+                Func = propertyLambda.Compile(),
+                RequiresFullWordMatch = requiresFullWordMatch
+            });
             
             return this;
         }
 
+        internal struct SearchIndexOption
+        {
+            internal bool RequiresFullWordMatch;
+            internal Func<TType, string> Func;
+            internal double Score;
+        }
     }
+
 }

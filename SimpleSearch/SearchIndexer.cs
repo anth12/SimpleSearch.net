@@ -41,7 +41,7 @@ namespace SimpleSearch
 
             foreach(var property in options.Properties)
             {
-                var cleanValues = property.Value.Item2.Invoke(item)?.Split(' ').Select(x => x.Clean()).ToArray();
+                var cleanValues = property.Value.Func.Invoke(item)?.Split(' ').Select(x => x.Clean()).ToArray();
 
                 if(cleanValues != null && cleanValues.Any())
                     index.Properties.Add(property.Key, cleanValues);

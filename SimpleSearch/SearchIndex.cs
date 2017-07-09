@@ -42,16 +42,18 @@ namespace SimpleSearch
 
             foreach (var indexedProperty in item.Properties)
             {
+                var option = Options.Properties[indexedProperty.Key];
+
                 foreach (var searchWord in searchQuery)
                 {
                     double score = 0;
 
                     if (indexedProperty.Value.Contains(searchWord))
                     {
-                        score = Options.Properties[indexedProperty.Key].Item1 * (searchWord.Length);
-                    }else if(indexedProperty.Value.Any(v=> v.Contains(searchWord)))
+                        score = option.Score * (searchWord.Length);
+                    }else if(!option.RequiresFullWordMatch && indexedProperty.Value.Any(v=> v.Contains(searchWord)))
                     {
-                        score = (Options.Properties[indexedProperty.Key].Item1 * (searchWord.Length)) / 2;
+                        score = (option.Score * (searchWord.Length)) / 2;
                     }
 
                     if(score > 0)
