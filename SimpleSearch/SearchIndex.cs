@@ -50,7 +50,7 @@ namespace SimpleSearch
 
                     if (indexedProperty.Value.Contains(searchWord))
                     {
-                        score = option.Score * (searchWord.Length);
+                        score = option.Score * (searchWord.Length) * (option.RequiresFullWordMatch ? 2 : 1);
                     }else if(!option.RequiresFullWordMatch && indexedProperty.Value.Any(v=> v.Contains(searchWord)))
                     {
                         score = (option.Score * (searchWord.Length)) / 2;

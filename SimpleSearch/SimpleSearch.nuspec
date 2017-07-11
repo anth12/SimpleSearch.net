@@ -5,12 +5,14 @@
     <version>$version$</version>
     <authors>Anthony Halliday</authors>
     <owners>Anthony Halliday</owners>
+    <title>SimpleSearch</title>
     <licenseUrl>https://github.com/anth12/SimpleSearch.net/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/anth12/SimpleSearch.net</projectUrl>
     <iconUrl>https://github.com/anth12/SimpleSearch.net/raw/master/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>Simple InMemory ranked search</summary>
     <description>Simple InMemory ranked search</description>
-    <releaseNotes>Initial release</releaseNotes>
+    <releaseNotes>ExactMatch score bonus</releaseNotes>
     <copyright>Copyright 2017</copyright>
     <tags>search inmemory</tags>
     <dependencies/>
