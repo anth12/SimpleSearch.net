@@ -7,6 +7,16 @@ namespace SimpleSearch
 {
     public class SearchIndexOptions<TType>
     {
+        public SearchIndexOptions(string indexSeperatorChar = "|")
+        {
+            FullMatchPattern = @"(?<=^\w+:.*)" + indexSeperatorChar + "({{query}})" + indexSeperatorChar;
+            PartialMatchPattern = @"(?<=^\w+:.*)({{query}})";
+            IndexSeperatorChar = indexSeperatorChar;
+        }
+
+        internal string PartialMatchPattern;
+        internal string FullMatchPattern;
+        internal string IndexSeperatorChar;
         internal Dictionary<string, SearchIndexOption> Properties { get; set; } 
                     = new Dictionary<string, SearchIndexOption>();
 

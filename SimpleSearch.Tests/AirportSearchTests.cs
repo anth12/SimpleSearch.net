@@ -56,6 +56,12 @@ namespace SimpleSearch.Tests
             stopWatch.Stop();
 
             Assert.AreEqual(results.Count, 2);
+
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            string version = fvi.FileVersion;
+
+            File.AppendAllLines(@"..\..\perf.txt", new[] { $"v{version}: {stopWatch.Elapsed}" });
         }
     }
 }
