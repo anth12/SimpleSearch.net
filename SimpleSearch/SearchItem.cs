@@ -1,19 +1,39 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 
 namespace SimpleSearch
 {
+    [DebuggerDisplay("{Item}: {Index}")]
     internal struct SearchItem<TType>
     {
         public SearchItem(TType item)
         {
             Item = item;
-            Properties = new Dictionary<string, string>();
+            Index = "";
+            PropertyIndexMap = new Dictionary<string, int>();
+
         }
 
-        // TODO make string
-        public Dictionary<string, string> Properties { get; set; }
-        public TType Item { get; set; }
+        /// <summary>
+        /// Maps the end index of Properties stored in the Index
+        /// </summary>
+        public Dictionary<string, int> PropertyIndexMap;
+        public string Index;
+        public TType Item;
 
+        public override string ToString()
+        {
+            var result = new StringBuilder();
+
+            var startIndex = 0;
+            foreach(var prop in PropertyIndexMap)
+            {
+                result.AppendLine($"{prop.Key}: {Index.Substring(startIndex, prop.Value)}");
+                startIndex = prop.Value + 1;
+            }
+
+            return result.ToString();
+        }
     }
 }
