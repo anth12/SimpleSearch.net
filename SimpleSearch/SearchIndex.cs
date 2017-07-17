@@ -23,24 +23,25 @@ namespace SimpleSearch
 
             // (?<=^.*:.*)(london|airport)
             var partial = new Regex($"{searchWords}");
-
-
-            var ranks = from indexedItem in Source
-                    let score = PerformSearch(indexedItem, full, partial)
-                    where score > 0
-                    orderby score descending
-                    select new KeyValuePair<TType, double>(indexedItem.Item, score);
-
-            var a = ranks.ToList();
-
-            if (!ranks.Any())
-                return ranks;
-
-            //var ranks = Source.Select(i => PerformSearch(i, full, partial)).Where(r=> r != null);
-
-            var resultThreshold = ranks.Max(c => c.Value) * Options.ResultThreshold;
             
-            return ranks.OrderByDescending(c=> c.Value).Where(c=> c.Value > resultThreshold);
+
+            var rankings = from indexedItem in Source
+                        let result = PerformSearch(indexedItem, full, partial)
+                        where result.Item1 > 0
+                        orderby result.Item1 descending
+                        select new Tuple<TType, double, bool>(indexedItem.Item, result.Item1, result.Item2);
+            
+            // Filter matches of only common words when better matches are found
+            if (!rankings.All(r => r.Item3))
+                rankings = rankings.Where(r => !r.Item3);
+
+            if (!rankings.Any())
+                return new List<KeyValuePair<TType, double>>();
+
+            
+            var resultThreshold = rankings.Max(c => c.Item2) * Options.ResultThreshold;
+            
+            return rankings.Where(c=> c.Item2 > resultThreshold).Select(r=> new KeyValuePair<TType, double>(r.Item1, r.Item2));
         }
         
 
@@ -64,15 +65,17 @@ namespace SimpleSearch
         }
 
         private Dictionary<string, double> SearchProperties = new Dictionary<string, double>();
-        private double PerformSearch(SearchItem<TType> item, Regex fullMatchRegex, Regex partialMatchRegex)
+        private Tuple<double, bool> PerformSearch(SearchItem<TType> item, Regex fullMatchRegex, Regex partialMatchRegex)
         {
             SearchProperties.Clear();
 
             var score = 0d;
+            var commonWordsOnly = true;
 
             var fullWordMatches = fullMatchRegex.Matches(item.Index);
             
             // TODO compare splitting on `|` and doing .Contans
+            // TODO boost commonly matched words
 
             foreach (Match fullMatch in fullWordMatches)
             {
@@ -84,12 +87,13 @@ namespace SimpleSearch
                 var option = Options.Properties[property.Key];
 
                 if (CommonWords.Contains(matchedWord.Value))
-                {
-                    score += (option.Score * (matchedWord.Length) * (option.RequiresFullWordMatch ? 2 : 1)) / 4;
+                {                    
+                    score += (option.Score * (matchedWord.Length) * (option.RequiresFullWordMatch ? 2 : 1)) / 5;
                 }
                 else
                 {
-                    score += option.Score * (matchedWord.Length) * (option.RequiresFullWordMatch ? 2 : 1);
+                    commonWordsOnly = false;
+                    score += (option.Score * (matchedWord.Length) * (option.RequiresFullWordMatch ? 2 : 1)) * 3;
                 }
 
             }
@@ -107,10 +111,19 @@ namespace SimpleSearch
                 if (option.RequiresFullWordMatch)
                     continue;
 
-                score += option.Score * (matchedWord.Length) * (option.RequiresFullWordMatch ? 2 : 1);
+                // TODO, matchedWord is unlikely to ever match as the value is a substring...
+                if (CommonWords.Contains(matchedWord.Value))
+                {
+                    score += (option.Score * (matchedWord.Length) * 1) / 5;
+                }
+                else
+                {
+                    score += option.Score * (matchedWord.Length) * 1;
+                }
             }
 
-            return score;
+            return new Tuple<double, bool>(score, commonWordsOnly);
+
             //foreach (var indexedProperty in item.Properties)
             //{
             //    var option = Options.Properties[indexedProperty.Key];

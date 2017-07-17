@@ -26,7 +26,8 @@ namespace SimpleSearch
             };
 
             // Index the top 1% of common words to give low scores too
-            index.CommonWords = wordFrequency.OrderByDescending(c => c.Value).Take(wordFrequency.Count / 100).Select(w => w.Key).ToArray();
+            var possibleCommonWords = wordFrequency.Where(w => w.Value > 2);
+            index.CommonWords = possibleCommonWords.OrderByDescending(c => c.Value).Take(possibleCommonWords.Count() / 100).Select(w => w.Key).ToArray();
                         
             return index;
         }

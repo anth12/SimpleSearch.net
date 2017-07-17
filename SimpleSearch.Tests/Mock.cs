@@ -20,6 +20,7 @@ namespace SimpleSearch.Tests
                 using (var textReader = new StreamReader(file))
                 {
                     var csv = new CsvReader(textReader);
+                    
                     _airports = csv.GetRecords<Airport>().Where(a => !string.IsNullOrEmpty(a.iata_code) && a.iata_code.Length > 2).ToList();
                 }
                 return _airports;

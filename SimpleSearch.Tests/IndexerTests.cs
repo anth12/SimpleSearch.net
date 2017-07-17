@@ -7,7 +7,7 @@ namespace SimpleSearch.Tests
     [TestClass]
     public class IndexerTests
     {
-        private SearchIndex<SampleClass> SearchIndex;
+        private readonly SearchIndex<SampleClass> SearchIndex;
 
         public IndexerTests()
         {
@@ -24,7 +24,7 @@ namespace SimpleSearch.Tests
         {
             var results = SearchIndex.Search("United States of America").ToList();
 
-            Assert.AreEqual(results.Count(), 5);
+            Assert.AreEqual(5, results.Count());
         }
     }
 }

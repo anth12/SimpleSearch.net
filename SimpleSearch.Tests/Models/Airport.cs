@@ -1,7 +1,7 @@
 ﻿
 namespace SimpleSearch.Tests.Models
 {
-    public class Airport
+    public struct Airport
     {
         public int id { get; set; }
         public string ident { get; set; }
@@ -16,5 +16,10 @@ namespace SimpleSearch.Tests.Models
         public string municipality { get; set; }
         public string iata_code { get; set; }
         public string local_code { get; set; }
+
+        public override string ToString()
+        {
+            return $"{iata_code}: {name}, {iso_country}";
+        }
     }
 }
