@@ -1,10 +1,6 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CsvHelper;
-using System.IO;
-using System.Collections.Generic;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
-using System.Diagnostics;
+using SimpleSearch.Tests.Models;
 
 namespace SimpleSearch.Tests
 {
@@ -13,55 +9,68 @@ namespace SimpleSearch.Tests
     {
         public AirportSearchTests()
         {
-            using (var file = File.OpenRead(@"..\..\airports.csv"))
-            using (var textReader = new StreamReader(file))
-            {
-                var csv = new CsvReader(textReader);
-                Airports = csv.GetRecords<Airport>().Where(a=> !string.IsNullOrEmpty(a.iata_code) && a.iata_code.Length > 2).ToList();
-            }
-
-            SearchIndex = SearchIndexer.Build(Airports,
-                new SearchIndexOptions<Airport>()
+            SearchIndex = SearchIndexer.Build(Mock.Airports,
+                new SearchIndexOptions<Airport>(resultThreshold: 0.5)
                     .AddProperty(c => c.iata_code, 1, true)
                     .AddProperty(c => c.name)
                     .AddProperty(c => c.municipality, 0.6)
-                    .AddProperty(c => c.iso_country, 0.4)
+                    .AddProperty(c => c.iso_country, 0.2, true)
             );
         }
-
-        public List<Airport> Airports;
+        
         public SearchIndex<Airport> SearchIndex;
 
         [TestMethod]
         public void Can_find_heathrow_by_code()
         {
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-
             var results = SearchIndex.Search("LHR").ToList();
-
-            stopWatch.Stop();
-
-            Assert.AreEqual(results.Count, 1);
+            
+            Assert.AreEqual(1, results.Count);
         }
 
         [TestMethod]
         public void Can_find_malta_by_name()
         {
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-
             var results = SearchIndex.Search("Malta").ToList();
 
-            stopWatch.Stop();
+            Assert.AreEqual(2, results.Count);
+        }
 
-            Assert.AreEqual(results.Count, 2);
+        [TestMethod]
+        public void Can_find_london_airports()
+        {
+            var results = SearchIndex.Search("london").ToList();
+            
+            Assert.AreEqual(8, results.Count);
+        }
 
-            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            string version = fvi.FileVersion;
+        [TestMethod]
+        public void Can_find_manchester_us()
+        {
+            var results = SearchIndex.Search("manchester, us").ToList();
+            
+            Assert.AreEqual(2, results.Count);
+            Assert.AreEqual("US", results[0].iso_country);
+            Assert.AreEqual("GB", results[1].iso_country);
+        }
 
-            File.AppendAllLines(@"..\..\perf.txt", new[] { $"v{version}: {stopWatch.Elapsed}" });
+        [TestMethod]
+        public void Can_find_manchester_gb()
+        {
+            var results = SearchIndex.Search("manchester, gb").ToList();
+
+            Assert.AreEqual(2, results.Count);
+            Assert.AreEqual("GB", results[0].iso_country);
+            Assert.AreEqual("US", results[1].iso_country);
+        }
+
+
+        [TestMethod]
+        public void Can_handle_no_results()
+        {
+            var results = SearchIndex.Search("extravagant crossword").ToList();
+
+            Assert.AreEqual(0, results.Count);
         }
     }
 }

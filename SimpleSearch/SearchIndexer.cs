@@ -18,13 +18,20 @@ namespace SimpleSearch
             if (!options.Properties.Any())
                 throw new Exception($"No properties specified to index");
 
-            return new SearchIndex<TType>
+            var wordFrequency = new Dictionary<string, int>();
+            var index =  new SearchIndex<TType>
             {
                 Options = options,
-                Source = source.Select(c=> IndexItem(c, options)).ToList()
+                Source = source.Select(c=> IndexItem(c, options, wordFrequency)).ToList()
             };
-        }
 
+            // Index the top 1% of common words to give low scores too
+            var possibleCommonWords = wordFrequency.Where(w => w.Value > 2);
+            index.CommonWords = possibleCommonWords.OrderByDescending(c => c.Value).Take(possibleCommonWords.Count() / 100).Select(w => w.Key).ToArray();
+                        
+            return index;
+        }
+        
         public static SearchIndex<TType> ReBuild<TType>(SearchIndex<TType> original, ObservableCollection<TType> source)
         {
             return original;
@@ -35,24 +42,41 @@ namespace SimpleSearch
             return original;
         }
 
-        private static SearchItem<TType> IndexItem<TType>(TType item, SearchIndexOptions<TType> options)
+        private static SearchItem<TType> IndexItem<TType>(TType item, SearchIndexOptions<TType> options, Dictionary<string, int> wordFrequency)
         {
             var index = new SearchItem<TType>(item);
 
             foreach(var property in options.Properties)
             {
-                var values = property.Value.Func.Invoke(item)?.Split(' ').Select(x => x.Clean());
+                var propertyValues = property.Value.Func.Invoke(item)?.Split(' ').Select(x => x.Clean());
 
-                if (values == null || !values.Any())
+                if (!propertyValues.Any())
                     continue;
 
-                var cleanValues = string.Join(options.IndexSeperatorChar, values);
+                foreach(var word in propertyValues)
+                {
+                    if (word.Length > 2)
+                    {
+                        if (wordFrequency.ContainsKey(word))
+                            wordFrequency[word]++;
+                        else
+                            wordFrequency.Add(word, 1);
+                    }
+                }
 
-                if(cleanValues != null && cleanValues.Any())
-                    index.Properties.Add(property.Key,  options.IndexSeperatorChar + cleanValues + options.IndexSeperatorChar);
+                var propertyIndexValue = string.Join(options.IndexSeperator, propertyValues);
+
+                if (!string.IsNullOrEmpty(propertyIndexValue))
+                {
+                    index.Index += $"{options.IndexSeperator}{propertyIndexValue}{options.IndexSeperator}";
+
+                    index.PropertyIndexMap.Add(property.Key, index.Index.Length -1);
+
+                }
             }
 
             return index;
         }
+        
     }
 }
