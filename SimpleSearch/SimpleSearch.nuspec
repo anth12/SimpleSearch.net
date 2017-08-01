@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>Simple InMemory ranked search</summary>
     <description>Simple InMemory ranked search</description>
-    <releaseNotes>ExactMatch score bonus</releaseNotes>
+    <releaseNotes></releaseNotes>
     <copyright>Copyright 2017</copyright>
     <tags>search inmemory</tags>
     <dependencies/>

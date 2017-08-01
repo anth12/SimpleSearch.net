@@ -6,6 +6,8 @@ Simple InMemory ranked search for .net applications.
 ## Instalation
     Install-Package SimpleSearch
 
+View on [nuget](https://www.nuget.org/packages/SimpleSearch/).
+
 ## Usage
 	SearchIndex = SearchIndexer.Build(Airports,
 		new SearchIndexOptions<Airport>()

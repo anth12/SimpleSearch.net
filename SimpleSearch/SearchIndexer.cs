@@ -50,7 +50,7 @@ namespace SimpleSearch
             {
                 var propertyValues = property.Value.Func.Invoke(item)?.Split(' ').Select(x => x.Clean());
 
-                if (!propertyValues.Any())
+                if (propertyValues == null || !propertyValues.Any())
                     continue;
 
                 foreach(var word in propertyValues)
